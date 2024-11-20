@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-import folium
-from datetime import datetime
+from map_utils import create_map
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sales.db'  # Измените на вашу базу данных
@@ -55,16 +54,13 @@ def index():
     #     'contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
     # )
     # tiles = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png'
-    m = folium.Map(location=[20, 0], zoom_start=2)#, tiles=tiles, attr=attr)
-    folium.Marker(
-        location=[55.76558541056076, 37.68488488529464],
-        tooltip="Click me!",
-        popup="BMSTU",
-        icon=folium.Icon(color="green"),
-    ).add_to(m)
+    # Создаем карту
+    map_obj = create_map()
 
+    # Генерируем HTML карты
+    map_html = map_obj._repr_html_()
 
-    map_html = m._repr_html_()
+    # Возвращаем шаблон с картой
     return render_template('index.html', map=map_html)
 
 
@@ -91,7 +87,6 @@ def sales():
         'sales_value_usd': sale.sales_value_usd,
         'created_at': sale.created_at
     } for sale in sales_data])
-
 
 if __name__ == '__main__':
     with app.app_context():

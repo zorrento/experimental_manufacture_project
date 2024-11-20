@@ -1,7 +1,285 @@
-body {
-    font-family: Arial, sans-serif;
+/* Сброс стилей (убираем отступы и используем систему расчета размеров box-sizing) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+/* Основные стили страницы */
+body {
+    font-family: 'Arial', sans-serif;
+    color: #333; /* Тёмный цвет текста */
+    background-color: #f4f5f7; /* Светлый фон страницы */
+    overflow: hidden; /* Отключаем прокрутку страницы */
+}
+
+/* Стили для карты */
 #map {
-    width: 100%;
+    height: 100vh; /* Высота карты — 100% высоты окна */
+    width: 100%; /* Ширина карты — 100% ширины окна */
+    transition: margin-left 0.3s ease; /* Плавное изменение отступа при сворачивании/раскрытии меню */
+}
+
+/* Стили бокового вертикального меню */
+#menu {
+    position: fixed; /* Фиксируем меню на экране */
+    top: 0;
+    left: 0;
+    height: 100vh; /* Высота меню — 100% высоты окна */
+    width: 220px; /* Ширина меню в раскрытом состоянии */
+    background-color: #ffffff; /* Белый фон меню */
+    border-right: 1px solid #e5e7eb; /* Лёгкая граница справа для отделения от карты */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень для создания эффекта "парения" */
+    padding: 10px 15px;
+    transition: width 0.3s ease; /* Плавное изменение ширины при сворачивании/раскрытии */
+}
+
+
+/* Контент внутри меню (скрыт по умолчанию) */
+#menu-content {
+    display: none;
+    transition: opacity 0.3s ease; /* Плавное изменение прозрачности */
+}
+
+/* Отображаем контент при раскрытом меню */
+.menu-expanded #menu-content {
+    display: block;
+    opacity: 1;
+}
+
+/* Стили для свёрнутого меню */
+.menu-collapsed {
+    width: 60px; /* Узкая ширина при сворачивании */
+}
+
+/* Стили для раскрытого меню */
+.menu-expanded {
+    width: 220px; /* Стандартная ширина раскрытого меню */
+}
+
+/* Стили для форм и кнопок в меню */
+.form-section {
+    margin-top: 20px; /* Отступ сверху для разделения секций */
+}
+
+/* Поля ввода */
+input {
+    width: 100%; /* Поля занимают всю ширину секции */
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #d1d5db; /* Светло-серая рамка */
+    border-radius: 6px; /* Скруглённые края */
+    background-color: #f9fafb; /* Немного более тёмный фон поля */
+    color: #111827; /* Тёмный цвет текста */
+    font-size: 14px;
+    outline: none; /* Убираем стандартное обрамление при фокусе */
+    transition: border-color 0.3s ease; /* Плавное изменение цвета рамки при фокусе */
+}
+
+/* Цвет текста placeholder */
+input::placeholder {
+    color: #9ca3af; /* Серый текст placeholder */
+}
+
+/* Стили при фокусе на поле ввода */
+input:focus {
+    border-color: #2563eb; /* Синяя рамка при фокусе */
+}
+
+/* Стили кнопок */
+button {
+    width: 100%; /* Кнопки занимают всю ширину секции */
+    padding: 10px;
+    background-color: #2563eb; /* Ярко-синий фон кнопки */
+    color: #ffffff; /* Белый цвет текста */
+    border: none;
+    border-radius: 6px; /* Скруглённые края */
+    cursor: pointer; /* Изменение курсора при наведении */
+    font-size: 14px;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Плавное изменение фона и небольшое увеличение при наведении */
+}
+
+/* Стили при наведении на кнопку */
+button:hover {
+    background-color: #1d4ed8; /* Более тёмный синий при наведении */
+    transform: scale(1.02); /* Небольшое увеличение кнопки */
+}
+
+/* Стили для формы поиска */
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Поле ввода названия машины */
+input[type="text"]#search-machine-name {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px 0 0 6px;
+    background-color: #f9fafb;
+    color: #111827;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+/* Цвет текста placeholder */
+input::placeholder {
+    color: #9ca3af;
+}
+
+/* Кнопка поиска с иконкой лупы */
+button#search-btn {
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-sizing: border-box; 
+}
+
+/* Иконка внутри кнопки */
+button#search-btn i {
+    font-size: 16px;
+}
+
+/* Стили при наведении на кнопку поиска */
+button#search-btn:hover {
+    background-color: #1d4ed8;
+    transform: scale(1.05);
+}
+
+/* Стили кнопки сворачивания меню */
+#toggle-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 50px;
+    background-color: #e0e7ff;
+    color: #1e3a8a;
+    border: 1px solid #c7d2fe;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+/* Иконка развернутого меню */
+#menu-icon {
+    display: block;
+}
+
+/* Иконка свернутого меню */
+#menu-collapse-icon {
+    display: none;
+}
+
+/* Скрытая иконка */
+.hidden {
+    display: none;
+}
+
+/* Стили для кнопки меню в свернутом состоянии */
+.menu-collapsed #menu-icon {
+    display: none;
+}
+
+.menu-collapsed #menu-collapse-icon {
+    display: block;
+}
+
+/* Стили для карты при свернутом меню */
+.menu-collapsed + #map {
+    margin-left: 60px; /* Отступ карты от меню в свёрнутом состоянии */
+}
+
+/* Стили для карты при раскрытом меню */
+.menu-expanded + #map {
+    margin-left: 220px; /* Отступ карты от меню в раскрытом состоянии */
+}
+
+/* Стили при наведении на кнопку сворачивания меню */
+#toggle-menu:hover {
+    background-color: #bfdbfe; /* Более тёмный синий при наведении */
+}
+
+/* Стили для увеличения размера кавычек */
+.menu-arrow {
+    font-size: 24px; /* Увеличиваем размер шрифта */
+    line-height: 1; /* Минимизируем отступы */
+}
+
+/* Контейнер для переключателя */
+#map-switch-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 8px 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Стили для переключателя */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 25px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 21px;
+    width: 21px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2563eb;
+}
+
+input:checked + .slider:before {
+    transform: translateX(25px);
+}
+
+/* Стили для текста переключателя */
+#map-switch-label {
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
 }

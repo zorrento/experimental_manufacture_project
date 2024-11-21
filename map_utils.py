@@ -20,7 +20,7 @@ def add_custom_css_to_folium_map(folium_map):
     return folium_map
 
 
-def create_map():
+def create_map(sales_df):
     """
     Функция для создания карты с двумя базовыми слоями и слоем меток.
     """
@@ -76,6 +76,15 @@ def create_map():
         popup="Месторождение: Сибирь",
         icon=folium.Icon(color="darkred", icon="gem", prefix='fa')
     ).add_to(marker_group)
+
+    # отображение всех продаж на карте
+    for sale_index in sales_df.index:
+        folium.Marker(
+            location=[sales_df['coordinate_longitude'][sale_index], sales_df['coordinate_latitude'][sale_index]],
+            tooltip=sales_df['customer_name'][sale_index],
+            popup=sales_df['machine_num'][sale_index],
+            icon=folium.Icon(color="darkred", icon="gem", prefix='fa')
+        ).add_to(marker_group)
 
     # Добавляем FeatureGroup на карту
     marker_group.add_to(m)

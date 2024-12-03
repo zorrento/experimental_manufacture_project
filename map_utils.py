@@ -1,4 +1,5 @@
 import folium
+import db_utils as db
 
 def add_custom_css_to_folium_map(folium_map):
     """
@@ -20,7 +21,7 @@ def add_custom_css_to_folium_map(folium_map):
     return folium_map
 
 
-def create_map(sales_df, sale_count_df):
+def create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df):
     """
     Функция для создания карты с двумя базовыми слоями и слоем меток.
     """
@@ -47,7 +48,7 @@ def create_map(sales_df, sale_count_df):
             display: flex; align-items: center; justify-content: center; 
             width: 30px; height: 30px; border-radius: 50%; 
             background-color: {color}; color: {text_color}; 
-            font-size: 14px; font-weight: bold; border: 2px solid black;">
+            font-size: 14px; font-weight: bold; border: 1px solid black;">
             {number}
         </div>
         """
@@ -55,6 +56,7 @@ def create_map(sales_df, sale_count_df):
     # Создаем FeatureGroup для меток
     marker_group = folium.FeatureGroup(name="Метки", overlay=True, control=True)
     sale_marker_group = folium.FeatureGroup(name="Продажи", overlay=True, control=True)
+    manufacturer_marker_group = folium.FeatureGroup(name="Конкуренты", overlay=True, control=True)
 
     # Добавляем маркеры в FeatureGroup
     # folium.Marker(
@@ -64,61 +66,76 @@ def create_map(sales_df, sale_count_df):
     #     icon=folium.DivIcon(html=create_label_html(5))  # Используем функцию для создания метки
     # ).add_to(marker_group)
 
-    folium.Marker(
-        location=[59.9343, 30.3351],  # Санкт-Петербург
-        tooltip="Конкурент",
-        popup="Город: Санкт-Петербург",
-        icon=folium.Icon(color="red", prefix='fa')
-    ).add_to(marker_group)
+    # folium.Marker(
+    #     location=[59.9343, 30.3351],  # Санкт-Петербург
+    #     tooltip="Конкурент",
+    #     popup="Город: Санкт-Петербург",
+    #     icon=folium.Icon(color="red", prefix='fa')
+    # ).add_to(marker_group)
 
-    folium.Marker(
-        location=[40.3680, 49.8770],  # Баку
-        tooltip="Конкурент",
-        popup="Город: Баку",
-        icon=folium.Icon(color="red", icon="briefcase", prefix='fa')
-    ).add_to(marker_group)
+    # folium.Marker(
+    #     location=[40.3680, 49.8770],  # Пример метки Конкурент
+    #     tooltip="Конкурент",
+    #     popup="Город: ",
+    #     icon=folium.Icon(color="red", icon="briefcase", prefix='fa')
+    # ).add_to(marker_group)
 
-    folium.Marker(
-        location=[61.5240, 105.3188],  # Пример месторождения в Сибири
-        tooltip="Месторождение камня",
-        popup="Месторождение: Сибирь",
-        icon=folium.Icon(color="darkred", icon="gem", prefix='fa')
-    ).add_to(marker_group)
+    # folium.Marker(
+    #     location=[61.5240, 105.3188],  # Пример месторождения в Сибири
+    #     tooltip="Месторождение камня",
+    #     popup="Месторождение: Сибирь",
+    #     icon=folium.Icon(color="darkred", icon="gem", prefix='fa')
+    # ).add_to(marker_group)
 
     # отображение всех продаж на карте
-    for sale_index in sales_df.index:
-        folium.Marker(
-            # !!!! нужно поменять местами: сначала широта(lat), потом долгота (lon)
-            location=[sales_df['coordinate_longitude'][sale_index], sales_df['coordinate_latitude'][sale_index]],
-            tooltip=sales_df['customer_name'][sale_index],
-            popup=sales_df['machine_num'][sale_index],
-            icon=folium.Icon(color="red", icon="circle", prefix='fa')
-        ).add_to(marker_group)
+    # for sale_index in sales_df.index:
+    #     folium.Marker(
+    #         # !!!! нужно поменять местами: сначала широта(lat), потом долгота (lon)
+    #         location=[sales_df['coordinate_longitude'][sale_index], sales_df['coordinate_latitude'][sale_index]],
+    #         tooltip=sales_df['customer_name'][sale_index],
+    #         popup=sales_df['machine_num'][sale_index],
+    #         icon=folium.Icon(color="red", icon="circle", prefix='fa')
+    #     ).add_to(marker_group)
 
     # Отображаем города с количеством продаж
+    sale_count_df = db.get_sale_count(sale_df, region_df)
     for _, row in sale_count_df.iterrows():
         lat = row['coordinate_latitude']
         lon = row['coordinate_longitude']
         city_name = row['city_name']
         sale_count = row['sale_count']
         
-        # # Получаем координаты для города (сначала ищем координаты по имени города в sales_df)
-        # city_sales = sales_df[sales_df['city_name'] == city_name]
-        # if not city_sales.empty:
-        #     lat, lon = city_sales.iloc[0][['coordinate_latitude', 'coordinate_longitude']]
-            
         # Создаем метку с количеством продаж
+        if sale_count == 1:
+            icon_custom = folium.Icon(color="Crimson", icon="circle", prefix='fa') # Иконка для sale_count = 1
+        else:
+            icon_custom = folium.DivIcon(
+                html=create_label_html(sale_count, color="Crimson", text_color="white")
+            )   # Иконка для sale_count > 1
         folium.Marker(
             location=[lat, lon],
             popup=f"Город: {city_name}<br>Количество продаж: {sale_count}",
-            icon=folium.DivIcon(
-                html=create_label_html(sale_count, color="blue", text_color="white")
-            )
+            icon=icon_custom
         ).add_to(sale_marker_group)
 
+    # Отображаем конкурентов
+    sale_count_df = db.get_competitors(manufacturer_df, region_df)
+    for _, row in sale_count_df.iterrows():
+        lat = row['coordinate_latitude']
+        lon = row['coordinate_longitude']
+        city_name = row['city_name']
+            
+        # Создаем метку с конкурентом
+        folium.Marker(
+            location=[lat, lon],
+            tooltip="Конкурент",
+            popup=f"Город: {city_name}",
+            icon=folium.Icon(color="red", icon="briefcase", prefix='fa')
+        ).add_to(manufacturer_marker_group)
+
     # Добавляем FeatureGroup на карту
-    marker_group.add_to(m)
     sale_marker_group.add_to(m)
+    manufacturer_marker_group.add_to(m)
 
     # Добавляем управление слоями
     folium.LayerControl().add_to(m)

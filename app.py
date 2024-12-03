@@ -2,7 +2,6 @@ import psycopg2
 import pandas as pd
 from flask import Flask, render_template, request, jsonify, g
 from map_utils import create_map
-from db_utils import get_sale_count
 
 # Приложение интерактивной карты на Flask
 app = Flask(__name__)
@@ -41,23 +40,28 @@ def close_db_connection(exception):
 
 # Забираем данные о продажах из БД и сохраняем в pd.DataFrame
 conn = psycopg2.connect(
-    dbname="test1",  # TODO изменить наименование бд
+    dbname="interactive_map",
     user="postgres",
-    password="postgres",
-    host="localhost",
-    port=5432
+    password="estetka2024!",
+    host="db.nerq.ru",
+    port=2410
 )
 cur = conn.cursor()
 # cur.execute("SELECT * FROM sales;")
 # sales_df = pd.DataFrame(cur.fetchall(), columns=['country_name', 'region_name', 'city_name',
 #                                                  'coordinate_longitude', 'coordinate_latitude',
 #                                                  'customer_name', 'machine_num', 'sale_date'])
-sales_df = pd.read_sql_query("SELECT * FROM sales;", con=conn)
+#sales_df = pd.read_sql_query("SELECT * FROM ez_sale;", con=conn)
 #sales_df.drop(index=0, inplace=True)
-sales_df[['coordinate_longitude', 'coordinate_latitude']] = sales_df[['coordinate_longitude', 'coordinate_latitude']].astype(float)
+#sales_df[['coordinate_longitude', 'coordinate_latitude']] = sales_df[['coordinate_longitude', 'coordinate_latitude']].astype(float)
 
+sale_df = pd.read_sql_query("SELECT * FROM ez_sale;", con=conn)
+region_df = pd.read_sql_query("SELECT * FROM ez_region;", con=conn)
+machine_df = pd.read_sql_query("SELECT * FROM ez_machine;", con=conn)
+manufacturer_df = pd.read_sql_query("SELECT * FROM ez_manufacturer;", con=conn)
+customer_df = pd.read_sql_query("SELECT * FROM ez_customer;", con=conn)
 # Получаем данные о количестве продаж
-test_count_df = get_sale_count(conn)
+# test_count_df = get_sale_count(conn)
 
 cur.close()
 conn.close()
@@ -65,8 +69,7 @@ conn.close()
 @app.route('/')
 def index():
     # Создаем карту
-    map_obj = create_map(sales_df.drop_duplicates(['coordinate_longitude']),
-                         test_count_df)
+    map_obj = create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df)
 
     # Генерируем HTML карты
     map_html = map_obj._repr_html_()

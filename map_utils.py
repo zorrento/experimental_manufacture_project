@@ -20,11 +20,7 @@ def add_custom_css_to_folium_map(folium_map):
     folium_map.get_root().header.add_child(folium.Element(f'<style>{custom_css}</style>'))
     return folium_map
 
-
-def create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df):
-    """
-    Функция для создания карты с двумя базовыми слоями и слоем меток.
-    """
+def create_map():
     # Создаем карту
     m = folium.Map(location=[55, 40], zoom_start=4)
 
@@ -41,6 +37,37 @@ def create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df):
         name='Топографическая карта'
     ).add_to(m)
 
+    return m
+
+def search_map_markers(folium_map, sales_data):
+    """
+    Обновляет метки на существующей карте.
+    """
+    search_marker_group = folium.FeatureGroup(name="Результаты поиска", overlay=True, control=True)
+    for _, row in sales_data.iterrows():
+        lat = row['coordinate_latitude']
+        lon = row['coordinate_longitude']
+        city_name = row['city_name']
+        folium.Marker(
+            location=[lat, lon],
+            popup=f"Город: {city_name}",
+            icon=folium.Icon(color="Crimson", icon="circle", prefix='fa')
+        ).add_to(search_marker_group)
+
+    # Обновляем параметры location
+    folium_map.location = [lat, lon]  # Новый центр карты
+    search_marker_group.add_to(folium_map)
+
+    # Добавляем управление слоями
+    folium.LayerControl().add_to(folium_map)
+    return folium_map
+
+
+def all_markers_map(folium_map, sale_df, region_df, machine_df, customer_df, manufacturer_df):
+    """
+    Функция для добавления основных меток.
+    """   
+
     # Функция для создания кастомного HTML с цифрой в кружочке
     def create_label_html(number, color="white", text_color="black"):
         return f"""
@@ -54,48 +81,9 @@ def create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df):
         """
 
     # Создаем FeatureGroup для меток
-    marker_group = folium.FeatureGroup(name="Метки", overlay=True, control=True)
+    # marker_group = folium.FeatureGroup(name="Метки", overlay=True, control=True)
     sale_marker_group = folium.FeatureGroup(name="Продажи", overlay=True, control=True)
     manufacturer_marker_group = folium.FeatureGroup(name="Конкуренты", overlay=True, control=True)
-
-    # Добавляем маркеры в FeatureGroup
-    # folium.Marker(
-    #     location=[55.7558, 37.6176],  # Москва
-    #     tooltip="Продажа товаров",
-    #     popup="Город: Москва",
-    #     icon=folium.DivIcon(html=create_label_html(5))  # Используем функцию для создания метки
-    # ).add_to(marker_group)
-
-    # folium.Marker(
-    #     location=[59.9343, 30.3351],  # Санкт-Петербург
-    #     tooltip="Конкурент",
-    #     popup="Город: Санкт-Петербург",
-    #     icon=folium.Icon(color="red", prefix='fa')
-    # ).add_to(marker_group)
-
-    # folium.Marker(
-    #     location=[40.3680, 49.8770],  # Пример метки Конкурент
-    #     tooltip="Конкурент",
-    #     popup="Город: ",
-    #     icon=folium.Icon(color="red", icon="briefcase", prefix='fa')
-    # ).add_to(marker_group)
-
-    # folium.Marker(
-    #     location=[61.5240, 105.3188],  # Пример месторождения в Сибири
-    #     tooltip="Месторождение камня",
-    #     popup="Месторождение: Сибирь",
-    #     icon=folium.Icon(color="darkred", icon="gem", prefix='fa')
-    # ).add_to(marker_group)
-
-    # отображение всех продаж на карте
-    # for sale_index in sales_df.index:
-    #     folium.Marker(
-    #         # !!!! нужно поменять местами: сначала широта(lat), потом долгота (lon)
-    #         location=[sales_df['coordinate_longitude'][sale_index], sales_df['coordinate_latitude'][sale_index]],
-    #         tooltip=sales_df['customer_name'][sale_index],
-    #         popup=sales_df['machine_num'][sale_index],
-    #         icon=folium.Icon(color="red", icon="circle", prefix='fa')
-    #     ).add_to(marker_group)
 
     # Отображаем города с количеством продаж
     sale_count_df = db.get_sale_count(sale_df, region_df)
@@ -134,13 +122,13 @@ def create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df):
         ).add_to(manufacturer_marker_group)
 
     # Добавляем FeatureGroup на карту
-    sale_marker_group.add_to(m)
-    manufacturer_marker_group.add_to(m)
-
-    # Добавляем управление слоями
-    folium.LayerControl().add_to(m)
+    sale_marker_group.add_to(folium_map)
+    manufacturer_marker_group.add_to(folium_map)
 
     # Применяем кастомный CSS стиль
-    m = add_custom_css_to_folium_map(m)
+    folium_map = add_custom_css_to_folium_map(folium_map)
 
-    return m
+    # Добавляем управление слоями
+    folium.LayerControl().add_to(folium_map)
+
+    return folium_map

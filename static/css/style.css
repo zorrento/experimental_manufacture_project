@@ -62,12 +62,17 @@ h1 {
     width: 220px; /* Стандартная ширина раскрытого меню */
 }
 
+
 /* Стили для форм и кнопок в меню */
 .form-section {
     max-width: 500px;
     margin-top: 20px; /* Отступ сверху для разделения секций */
     margin: 0 auto;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.spacer {
+    height: 40px; /* Высота пустого пространства */
 }
 
 /* Поля ввода */
@@ -119,8 +124,9 @@ button:hover {
     align-items: center;
 }
 
-/* Поле ввода названия машины */
-input[type="text"]#search-machine-name {
+/* Поле ввода параметра поиска */
+input[type="text"]#search-machine-id,
+input[type="text"]#search-city-name {
     flex: 1;
     padding: 10px;
     border: 1px solid #d1d5db;

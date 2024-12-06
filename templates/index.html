@@ -19,13 +19,27 @@
         <div id="menu-content">
             <h2>Управление данными</h2>
             
-            <!-- Форма поиска -->
+            <!-- Форма поиска по машине -->
             <div class="form-section search-container">
-                <input type="text" id="search-machine-name" placeholder="Название машины">
-                <button id="search-btn" onclick="searchMachine()">
+                <input type="text" id="search-machine-id" placeholder="Номер машины">
+                <button id="search-btn" onclick="searchMachineSaleInfo()">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
+
+            <!-- Форма поиска по городу-->
+            <div class="form-section search-container">
+                <input type="text" id="search-city-name" placeholder="Название города">
+                <button id="search-btn" onclick="searchCitySaleInfo()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <div class="form-section">
+                <button id="menu-btn" onclick="resetDefaultMarkers()">Сбросить поиск</button>
+            </div>            
+
+            <div class="spacer"></div> <!-- Пустой div для отступа -->
             
             <div class="form-section">
                 <button id="menu-btn" onclick="addRecordForm()">Добавить данные</button>

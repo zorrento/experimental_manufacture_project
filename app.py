@@ -1,7 +1,8 @@
 import psycopg2
 import pandas as pd
 from flask import Flask, render_template, request, jsonify, g
-from map_utils import create_map
+import map_utils as map_func
+import db_utils as db
 import geopy
 
 # Приложение интерактивной карты на Flask
@@ -50,35 +51,74 @@ conn = psycopg2.connect(
     port=2410
 )
 cur = conn.cursor()
-# cur.execute("SELECT * FROM sales;")
-# sales_df = pd.DataFrame(cur.fetchall(), columns=['country_name', 'region_name', 'city_name',
-#                                                  'coordinate_longitude', 'coordinate_latitude',
-#                                                  'customer_name', 'machine_num', 'sale_date'])
-#sales_df = pd.read_sql_query("SELECT * FROM ez_sale;", con=conn)
-#sales_df.drop(index=0, inplace=True)
-#sales_df[['coordinate_longitude', 'coordinate_latitude']] = sales_df[['coordinate_longitude', 'coordinate_latitude']].astype(float)
+
 
 sale_df = pd.read_sql_query("SELECT * FROM ez_sale;", con=conn)
 region_df = pd.read_sql_query("SELECT * FROM ez_region;", con=conn)
 machine_df = pd.read_sql_query("SELECT * FROM ez_machine;", con=conn)
 manufacturer_df = pd.read_sql_query("SELECT * FROM ez_manufacturer;", con=conn)
 customer_df = pd.read_sql_query("SELECT * FROM ez_customer;", con=conn)
-# Получаем данные о количестве продаж
-# test_count_df = get_sale_count(conn)
 
 cur.close()
 conn.close()
 
 @app.route('/')
 def index():
-    # Создаем карту
-    map_obj = create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df)
+
+    # Создаём базовую карту
+    base_map = map_func.create_map()
+
+    # Добавляем маркеры
+    all_markers_map = map_func.all_markers_map(base_map, sale_df, region_df, machine_df, customer_df, manufacturer_df)
 
     # Генерируем HTML карты
-    map_html = map_obj._repr_html_()
+    map_html = all_markers_map._repr_html_()
 
     # Возвращаем шаблон с картой
     return render_template('index.html', map=map_html)
+
+
+@app.route('/search_by_machine', methods=['GET'])
+def search_by_machine():
+    machine_id = request.args.get('machine_id')
+    if machine_id:
+        sales_data = db.get_sales_by_machine_id(machine_id, machine_df, sale_df, region_df)
+        if not sales_data.empty:
+            search_map = map_func.create_map()  # Создаём новую карту
+            updated_map = map_func.search_map_markers(search_map, sales_data)
+            search_map_html = updated_map._repr_html_()
+
+            # Возвращаем HTML карты в формате JSON
+            return jsonify({'map': search_map_html})
+        else:
+            return jsonify({"error": "Номер машины не найден в продажах"}), 404  # Код 404 - Not Found
+    else:
+        return jsonify({"error": "Machine name is missing"}), 400 # Код 400 - Bad Request
+    
+@app.route('/search_by_city', methods=['GET'])
+def search_by_city():
+    city_name = request.args.get('city_name')
+    if city_name:
+        sales_data = db.get_sales_by_city_name(city_name, sale_df, region_df)
+        if not sales_data.empty:
+            search_map = map_func.create_map()  # Создаём новую карту
+            updated_map = map_func.search_map_markers(search_map, sales_data)
+            search_map_html = updated_map._repr_html_()
+
+            # Возвращаем HTML карты в формате JSON
+            return jsonify({'map': search_map_html})
+        else:
+            return jsonify({"error": "Город не найден в продажах"}), 404  # Код 404 - Not Found
+    else:
+        return jsonify({"error": "City name is missing"}), 400 # Код 400 - Bad Request
+
+@app.route('/reset_map', methods=['GET'])
+def reset_map():
+    base_map = map_func.create_map()  # Создаём базовую карту
+    all_markers_map = map_func.all_markers_map(base_map, sale_df, region_df, machine_df, customer_df, manufacturer_df)
+    map_html = all_markers_map._repr_html_()
+
+    return jsonify({'map': map_html})
 
 
 @app.route('/get_url_root')

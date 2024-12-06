@@ -1,34 +1,23 @@
 // Заглушка для функции добавления записи
 function addRecordForm() {
-    const nameInput = document.getElementById('marker-name');
-    const latInput = document.getElementById('marker-lat');
-    const lngInput = document.getElementById('marker-lng');
-    
-    const name = nameInput.value;
-    const lat = latInput.value;
-    const lng = lngInput.value;
-
-    if (name && lat && lng) {
-        alert(`Запись добавлена: ${name}`);
-        // Очистка полей ввода
-        nameInput.value = '';
-        latInput.value = '';
-        lngInput.value = '';
-    } else {
-        alert("Заполните все поля");
-    }
+    fetch('/get_url_root')
+        .then(response => response.json())  // Парсим ответ как JSON
+        .then(data => {
+            const baseUrl = data.base_url;  // Получаем базовый URL
+            const fullUrl = `${baseUrl}add_record`;
+            window.open(fullUrl, '_blank');  // Открываем полную ссылку в новой вкладке
+        })
+        .catch(error => console.error('Error:', error));  // Обрабатываем ошибки
 }
 
 // Заглушка для функции удаления записи
 function deleteRecordForm() {
-    const idInput = document.getElementById('marker-id');
-    
-    const id = idInput.value;
-    if (id) {
-        alert(`Запись с ID ${id} удалена`);
-        // Очистка поля ввода
-        idInput.value = '';
-    } else {
-        alert("Введите ID записи для удаления");
-    }
+    fetch('/get_url_root')
+        .then(response => response.json())  // Парсим ответ как JSON
+        .then(data => {
+            const baseUrl = data.base_url;  // Получаем базовый URL
+            const fullUrl = `${baseUrl}delete_record`;
+            window.open(fullUrl, '_blank');  // Открываем полную ссылку в новой вкладке
+        })
+        .catch(error => console.error('Error:', error));  // Обрабатываем ошибки
 }

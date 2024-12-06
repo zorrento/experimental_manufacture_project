@@ -123,14 +123,14 @@ def create_map(sale_df, region_df, machine_df, customer_df, manufacturer_df):
     for _, row in sale_count_df.iterrows():
         lat = row['coordinate_latitude']
         lon = row['coordinate_longitude']
+        name = row['manufacturer_name']
         city_name = row['city_name']
-            
         # Создаем метку с конкурентом
         folium.Marker(
             location=[lat, lon],
-            tooltip="Конкурент",
+            tooltip=name,
             popup=f"Город: {city_name}",
-            icon=folium.Icon(color="red", icon="briefcase", prefix='fa')
+            icon=folium.Icon(color="black", icon="briefcase", prefix='fa')
         ).add_to(manufacturer_marker_group)
 
     # Добавляем FeatureGroup на карту

@@ -2,9 +2,12 @@ import psycopg2
 import pandas as pd
 from flask import Flask, render_template, request, jsonify, g
 from map_utils import create_map
+import geopy
 
 # Приложение интерактивной карты на Flask
 app = Flask(__name__)
+
+geolocator = geopy.Nominatim(user_agent="http")
 
 # Настройки подключения
 DB_CONFIG = {
@@ -76,6 +79,72 @@ def index():
 
     # Возвращаем шаблон с картой
     return render_template('index.html', map=map_html)
+
+
+@app.route('/get_url_root')
+def get_url():
+    return jsonify({'base_url': request.url_root})
+
+
+@app.route('/add_record', methods=['GET', 'POST'])
+def add_record():
+    if request.method == 'POST':
+        # Обработка формы
+        date_of_sale = request.form['date_of_sale']
+        supplier_name = request.form['supplier_name']
+        car_id = request.form['car_id']
+        city_of_sale = request.form['city_of_sale']
+
+        print("Получены данные:")
+        print(date_of_sale)
+        print(supplier_name)
+        print(car_id)
+        print(city_of_sale)
+
+        city_location = None
+        try:
+            city_location = geolocator.geocode(city_of_sale, language="ru")
+            lat = city_location.latitude
+            lng = city_location.longitude
+            print(f"Получены координаты: {lat} {lng}")
+        except Exception as e:
+            print(f"Ошибка при получении координат города {city_of_sale}. {e}")
+        if city_location is None:
+            return render_template('add_record.html', error="Ошибка при получении координат введенного города")
+
+        return '''<script>
+                   window.close();
+                   alert("Новая запись о продаже успешно добавлена");
+                  </script>'''
+
+    return render_template('add_record.html')
+
+
+@app.route('/autocomplete_cities')
+def autocomplete_cities():
+    query = request.args.get('query')
+    locations = geolocator.geocode(query, exactly_one=False, language="ru")
+    hints = []
+    if locations:
+        hints = [location.address for location in locations]
+    return jsonify(cities=hints)
+
+
+@app.route('/delete_record', methods=['GET', 'POST'])
+def delete_record():
+    if request.method == 'POST':
+        # Обработка формы
+        sale_id = request.form['sale_id']
+
+        print("Получены данные:")
+        print(sale_id)
+
+        return '''<script>
+                   window.close();
+                   alert("Запись о продаже успешно удалена");
+                  </script>'''
+
+    return render_template('delete_record.html')
 
 
 if __name__ == '__main__':

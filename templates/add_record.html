@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить данные о продаже</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1 align="center">Добавить данные о продаже</h1>
+    {% if error %}
+        <p style="color: red;" align="center">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+        <div class="form-section">
+            <label for="date_of_sale">Дата продажи:</label><br>
+            <input type="date" id="date_of_sale" name="date_of_sale" required><br><br>
+
+            <label for="supplier_name">Наименование поставщика:</label><br>
+            <input type="text" id="supplier_name" name="supplier_name" required><br><br>
+
+            <label for="car_id">ID проданной машины:</label><br>
+            <input type="number" id="car_id" name="car_id" required><br><br>
+
+            <label for="city_of_sale">Город продажи:</label><br>
+            <!-- Здесь будем добавлять автодополнение -->
+            <input type="text" id="city_of_sale" name="city_of_sale" list="cities" required><br><br>
+            <datalist id="cities"></datalist>
+
+            <button type="submit">Добавить данные о продаже</button>
+        </div>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#city_of_sale').on('keyup', function () {
+                let inputValue = $(this).val();
+                if (inputValue.length >= 3) {
+                    $.ajax({
+                        url: "/autocomplete_cities",
+                        type: "GET",
+                        data: { query: inputValue },
+                        success: function (response) {
+                            let citiesList = response.cities;
+                            $('#cities').empty();  // Очищаем список городов перед добавлением новых значений
+                            citiesList.forEach(city => {
+                                $('#cities').append($('<option>').attr('value', city));
+                            });
+                        },
+                        error: function (error) {
+                            console.log("Ошибка:", error);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
